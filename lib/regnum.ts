@@ -2,7 +2,7 @@ import { httpJson } from "./http";
 import type { VehicleData } from "./types";
 
 const BASE_URL = process.env.REGNUM_BASE_URL || "http://drm.bovsoft.com:400/bovsoft.regnum.clientapi";
-const ID = process.env.REGNUM_ID || "467";
+const ID = process.env.REGNUM_ID || process.env.REGNUM_CLIENT_ID || "467";
 const TOKEN = process.env.REGNUM_TOKEN || "";
 
 type RegnumResponse = {
