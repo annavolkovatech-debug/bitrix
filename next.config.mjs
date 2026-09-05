@@ -7,6 +7,8 @@ const nextConfig = {
     },
   },
   async headers() {
+    const b24Domain = "b24-12cc50.bitrix24.com";
+    const bitrix24Csp = `frame-ancestors 'self' https://*.bitrix24.com https://*.bitrix24.ru https://${b24Domain};`;
     return [
       {
         source: "/api/:path*",
@@ -19,6 +21,13 @@ const nextConfig = {
             value:
               "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
           },
+        ],
+      },
+      {
+        source: "/:path*",
+        headers: [
+          { key: "Content-Security-Policy", value: bitrix24Csp },
+          { key: "X-Frame-Options", value: `ALLOW-FROM https://${b24Domain}` },
         ],
       },
     ];
