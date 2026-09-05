@@ -1,7 +1,7 @@
 import { httpJson } from "./http";
 import type { Json } from "./types";
 
-const BITRIX_WEBHOOK_URL = process.env.BITRIX_WEBHOOK_URL || "";
+const BITRIX_WEBHOOK_URL = process.env.BITRIX_WEBHOOK_URL || process.env.BITRIX_BASE_URL || "";
 
 function ensureWebhook(): string {
   if (!BITRIX_WEBHOOK_URL) {
