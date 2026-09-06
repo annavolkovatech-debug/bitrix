@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import {
   BX_AUTO_FIELDS,
   BxEntityType,
@@ -42,6 +42,7 @@ function verifySecret(req: NextRequest, payload: Record<string, unknown>): boole
 }
 
 export async function POST(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const ct = req.headers.get("content-type") || "";
   let payload: Record<string, unknown> = {};
   try {
@@ -99,6 +100,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const q = req.nextUrl.searchParams.get("q") || req.nextUrl.searchParams.get("query");
   if (q) {
     try {

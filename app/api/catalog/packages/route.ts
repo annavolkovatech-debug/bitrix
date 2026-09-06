@@ -1,11 +1,12 @@
 import { NextRequest } from "next/server";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import { SERVICE_PACKAGES, SERVICES } from "@/lib/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const id = req.nextUrl.searchParams.get("id");
   if (id) {
     const pkg = SERVICE_PACKAGES.find((p) => p.id === id);

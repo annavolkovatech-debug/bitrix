@@ -216,6 +216,8 @@ type NewApptState = {
 };
 
 export default function CalendarPage() {
+  const INTEGRATION_DISABLED_BANNER = true;
+
   const [range, setRange] = useState<ViewRange>("TODAY");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -230,6 +232,11 @@ export default function CalendarPage() {
   const days = useMemo(() => daysForRange(range, selectedDate), [range, selectedDate]);
 
   const fetchList = useCallback(async () => {
+    if (INTEGRATION_DISABLED_BANNER) {
+      setAppointments([]);
+      setErr("Работа интеграции временно приостановлена. Для возобновления свяжитесь с разработчиком.");
+      return;
+    }
     setLoading(true);
     setErr(null);
     try {
@@ -251,6 +258,7 @@ export default function CalendarPage() {
   useEffect(() => { fetchList(); }, [fetchList]);
 
   useEffect(() => {
+    if (INTEGRATION_DISABLED_BANNER) { setSearchResults([]); return; }
     if (!searchQ.trim()) { setSearchResults([]); return; }
     const t = setTimeout(async () => {
       setSearching(true);
@@ -264,6 +272,10 @@ export default function CalendarPage() {
   }, [searchQ]);
 
   const onCellClick = (lift: LiftId, day: Date, hour: number, minute = 0) => {
+    if (INTEGRATION_DISABLED_BANNER) {
+      alert("Работа интеграции временно приостановлена. Для возобновления свяжитесь с разработчиком.");
+      return;
+    }
     setShowNew({
       defaultLift: lift,
       defaultDay: new Date(day),
@@ -339,27 +351,49 @@ export default function CalendarPage() {
 
   return (
     <div style={STYLES.page}>
+      {/* DISABLED BANNER */}
+      {INTEGRATION_DISABLED_BANNER && (
+        <div
+          style={{
+            position: "sticky" as const,
+            top: 0,
+            zIndex: 30,
+            padding: "14px 22px",
+            background: "linear-gradient(90deg, #7f1d1d 0%, #b91c1c 100%)",
+            color: "#fff",
+            borderBottom: "4px solid #fecaca",
+            fontSize: 14,
+            fontWeight: 700,
+            letterSpacing: 0.2,
+            textAlign: "center" as const,
+            boxShadow: "0 4px 14px rgba(185,28,28,0.25)",
+          }}
+        >
+          ⛔ ИНТЕГРАЦИЯ ОТКЛЮЧЕНА · Работа временно приостановлена. Для возобновления свяжитесь с разработчиком.
+        </div>
+      )}
       {/* HEADER */}
       <div style={STYLES.header}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
           <div>
-            <h1 style={STYLES.h1}>📅 Календарь подъёмников</h1>
-            <div style={STYLES.sub}>4 подъёмника · Рабочие часы 08:00–20:00 · Шаг 15 мин · Синхронизация с Битрикс24</div>
+            <h1 style={{ ...STYLES.h1, color: INTEGRATION_DISABLED_BANNER ? "#64748b" : STYLES.h1.color, textDecoration: INTEGRATION_DISABLED_BANNER ? "line-through" : "none" }}>📅 Календарь подъёмников</h1>
+            <div style={STYLES.sub}>4 подъёмника · Рабочие часы 08:00–20:00 · Шаг 15 мин · {INTEGRATION_DISABLED_BANNER ? "Синхронизация с Битрикс24 ОТКЛЮЧЕНА" : "Синхронизация с Битрикс24"}</div>
           </div>
           <div style={STYLES.row}>
             <div style={{ ...STYLES.row, border: "1px solid #cbd5e1", borderRadius: 10, overflow: "hidden", background: "#f8fafc" }}>
               {(["TODAY", "TOMORROW", "3_DAYS", "WEEK"] as ViewRange[]).map((v) => (
-                <button key={v} onClick={() => setRange(v)} style={{ ...STYLES.tabBtn(range === v), border: "none", borderRadius: 0, borderRight: v !== "WEEK" ? "1px solid #e2e8f0" : "none" }}>{rangeLabels[v]}</button>
+                <button key={v} disabled={INTEGRATION_DISABLED_BANNER} onClick={() => setRange(v)} style={{ ...STYLES.tabBtn(range === v), border: "none", borderRadius: 0, borderRight: v !== "WEEK" ? "1px solid #e2e8f0" : "none", opacity: INTEGRATION_DISABLED_BANNER ? 0.5 : 1, cursor: INTEGRATION_DISABLED_BANNER ? "not-allowed" : "pointer" }}>{rangeLabels[v]}</button>
               ))}
             </div>
             <input
               type="date"
-              style={STYLES.input}
+              disabled={INTEGRATION_DISABLED_BANNER}
+              style={{ ...STYLES.input, opacity: INTEGRATION_DISABLED_BANNER ? 0.5 : 1, cursor: INTEGRATION_DISABLED_BANNER ? "not-allowed" : "text" }}
               value={fmtISOLocal(selectedDate).slice(0, 10)}
               onChange={(e) => setSelectedDate(new Date(e.target.value + "T00:00:00"))}
             />
-            <button style={STYLES.btn(false)} onClick={() => setSelectedDate(new Date())}>Сегодня</button>
-            <button style={STYLES.btn(true, loading)} onClick={fetchList}>{loading ? "⏳ Обновляем…" : "🔄 Обновить"}</button>
+            <button disabled={INTEGRATION_DISABLED_BANNER} style={{ ...STYLES.btn(false), opacity: INTEGRATION_DISABLED_BANNER ? 0.5 : 1, cursor: INTEGRATION_DISABLED_BANNER ? "not-allowed" : "pointer" }} onClick={() => setSelectedDate(new Date())}>Сегодня</button>
+            <button disabled={INTEGRATION_DISABLED_BANNER || loading} style={{ ...STYLES.btn(true, loading), opacity: INTEGRATION_DISABLED_BANNER ? 0.5 : 1, cursor: INTEGRATION_DISABLED_BANNER ? "not-allowed" : "pointer" }} onClick={fetchList}>{loading ? "⏳ Обновляем…" : "🔄 Обновить"}</button>
           </div>
         </div>
 
@@ -383,7 +417,7 @@ export default function CalendarPage() {
                   <span style={STYLES.liftBadge(lift.color)}>🏗️ {lift.label}</span>
                   <span style={{ fontSize: 12, color: "#475569" }}>Часы работы <b>08:00 – 20:00</b> · <b>15 мин</b> шаг</span>
                 </div>
-                <button style={STYLES.smallBtn} onClick={() => {
+                <button disabled={INTEGRATION_DISABLED_BANNER} style={{ ...STYLES.smallBtn, opacity: INTEGRATION_DISABLED_BANNER ? 0.5 : 1, cursor: INTEGRATION_DISABLED_BANNER ? "not-allowed" : "pointer" }} onClick={() => {
                   const now = new Date();
                   const day = days.find((d) => d.toDateString() === now.toDateString()) || days[0];
                   onCellClick(lift.id, day, Math.max(HOUR_START, Math.min(HOUR_END, now.getHours())), now.getMinutes() < 30 ? 0 : 30);

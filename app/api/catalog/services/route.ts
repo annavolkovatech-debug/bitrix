@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import { SERVICE_PACKAGES, SERVICES } from "@/lib/catalog";
 import type { ServiceItem, ServicePackage } from "@/lib/types";
 
@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const path = req.nextUrl.pathname.split("/").filter(Boolean).pop();
   const id = req.nextUrl.searchParams.get("id");
 
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST() {
+  if (!isIntegrationEnabled()) return disabledResponse();
   return errorResponse("БД отключена — справочник конфигурируется в lib/catalog.ts", 501);
 }
 

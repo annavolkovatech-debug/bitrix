@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import {
   isMoloniConfigured,
   moloniCompaniesGetAll,
@@ -12,6 +12,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   if (!isMoloniConfigured()) return errorResponse("Moloni not configured", 503);
   try {
     const action = req.nextUrl.searchParams.get("action");
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   if (!isMoloniConfigured()) return errorResponse("Moloni not configured", 503);
   try {
     const body = (await req.json()) as

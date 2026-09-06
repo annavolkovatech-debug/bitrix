@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import type { CalendarAppointment, LiftId } from "@/lib/types";
 import { LIFTS } from "@/lib/catalog";
 
@@ -30,6 +30,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const path = req.nextUrl.pathname.split("/").filter(Boolean).pop();
   if (path === "lifts") {
     return okResponse(LIFTS);
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   try {
     const body = (await req.json()) as Omit<CalendarAppointment, "id">;
     if (!body.liftId || !LIFTS.some((l) => l.id === body.liftId)) return errorResponse("liftId required (LIFT_1..LIFT_4)", 400);

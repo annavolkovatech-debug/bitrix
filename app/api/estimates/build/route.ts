@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import { SERVICE_PACKAGES, SERVICES } from "@/lib/catalog";
 import type { MoloniEstimateLine } from "@/lib/types";
 import { isMoloniConfigured, moloniEstimatesInsert } from "@/lib/moloni";
@@ -25,6 +25,7 @@ type Body = {
 };
 
 export async function POST(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   try {
     const b = (await req.json()) as Body;
     if (!b.customer?.name) return errorResponse("customer.name required", 400);

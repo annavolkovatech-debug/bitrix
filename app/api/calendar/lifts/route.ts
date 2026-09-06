@@ -1,10 +1,11 @@
-import { okResponse } from "@/lib/response";
+import { disabledResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import { LIFTS } from "@/lib/catalog";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export function GET() {
+  if (!isIntegrationEnabled()) return disabledResponse();
   return okResponse(LIFTS);
 }
 

@@ -1,12 +1,13 @@
 import { NextRequest } from "next/server";
 import { bxCall } from "@/lib/bitrix";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 import type { Json } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const method = req.nextUrl.searchParams.get("method");
   if (!method) return errorResponse("?method=crm.deal.list required", 400);
   try {
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   try {
     const body = (await req.json()) as { method: string; params?: Record<string, unknown> };
     if (!body.method) return errorResponse("method required", 400);

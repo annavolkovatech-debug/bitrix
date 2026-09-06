@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { okResponse, errorResponse } from "@/lib/response";
+import { NextRequest } from "next/server";
+import { disabledResponse, isIntegrationEnabled, okResponse, errorResponse } from "@/lib/response";
 import {
   Appointment,
   fetchDealAppointments,
@@ -20,6 +20,7 @@ function addDays(iso: string, days: number): string {
 }
 
 export async function GET(req: NextRequest): Promise<Response> {
+  if (!isIntegrationEnabled()) return disabledResponse();
   try {
     const url = req.nextUrl;
     const search = (url.searchParams.get("q") || "").trim();
@@ -54,6 +55,7 @@ export type UpsertInput = Parameters<typeof upsertDealAppointment>[0] & {
 };
 
 export async function POST(req: NextRequest): Promise<Response> {
+  if (!isIntegrationEnabled()) return disabledResponse();
   try {
     const body = (await req.json()) as MoveAppointmentInput | UpsertInput | { action?: string };
     const act = (body as { action?: string }).action || "upsert";

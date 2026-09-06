@@ -1,19 +1,39 @@
 import { isMoloniConfigured } from "@/lib/moloni";
+import { DISABLED_REASON, isIntegrationEnabled } from "@/lib/response";
 
 export default function HomePage() {
+  const disabled = !isIntegrationEnabled();
   const hasBitrix = Boolean(process.env.BITRIX_WEBHOOK_URL);
   const hasRegnum = Boolean(process.env.REGNUM_TOKEN);
   const hasMoloni = isMoloniConfigured();
 
   const items = [
-    { label: "Bitrix24 webhook", ok: hasBitrix, hint: "BITRIX_WEBHOOK_URL" },
-    { label: "REGNUM API", ok: hasRegnum, hint: "REGNUM_ID / REGNUM_TOKEN" },
-    { label: "Moloni API", ok: hasMoloni, hint: "MOLONI_CLIENT_ID / SECRET / USERNAME / PASSWORD / COMPANY_ID" },
+    { label: "Bitrix24 webhook", ok: !disabled && hasBitrix, hint: "BITRIX_WEBHOOK_URL" },
+    { label: "REGNUM API", ok: !disabled && hasRegnum, hint: "REGNUM_ID / REGNUM_TOKEN" },
+    { label: "Moloni API", ok: !disabled && hasMoloni, hint: "MOLONI_CLIENT_ID / SECRET / USERNAME / PASSWORD / COMPANY_ID" },
   ];
 
   return (
     <main style={{ padding: "48px 32px", maxWidth: 960, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 28, margin: 0 }}>Bitrix24 · REGNUM · Moloni — integration layer</h1>
+      {disabled && (
+        <div
+          style={{
+            marginBottom: 28,
+            padding: "18px 22px",
+            borderRadius: 14,
+            background: "linear-gradient(90deg, #7f1d1d 0%, #b91c1c 100%)",
+            color: "#ffffff",
+            border: "2px solid #fecaca",
+            fontWeight: 800,
+            fontSize: 16,
+            letterSpacing: 0.2,
+            boxShadow: "0 4px 14px rgba(185,28,28,0.25)",
+          }}
+        >
+          ⛔ ИНТЕГРАЦИЯ ОТКЛЮЧЕНА · {DISABLED_REASON}
+        </div>
+      )}
+      <h1 style={{ fontSize: 28, margin: 0, textDecoration: disabled ? "line-through" : "none", color: disabled ? "#6b7280" : "#111" }}>Bitrix24 · REGNUM · Moloni — integration layer</h1>
       <p style={{ color: "#555", marginTop: 8 }}>Next.js API Middleware (без собственной БД).</p>
 
       <section style={{ marginTop: 32 }}>
@@ -29,6 +49,7 @@ export default function HomePage() {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                opacity: disabled ? 0.55 : 1,
               }}
             >
               <div>
@@ -45,16 +66,16 @@ export default function HomePage() {
                   fontSize: 12,
                 }}
               >
-                {it.ok ? "OK" : "NOT CONFIGURED"}
+                {disabled ? "DISABLED" : it.ok ? "OK" : "NOT CONFIGURED"}
               </div>
             </li>
           ))}
         </ul>
       </section>
 
-      <section style={{ marginTop: 40 }}>
-        <h2 style={{ fontSize: 18 }}>Маршруты API</h2>
-        <div style={{ marginTop: 12, display: "grid", gap: 10, fontSize: 14 }}>
+      <section style={{ marginTop: 40, opacity: disabled ? 0.55 : 1 }}>
+        <h2 style={{ fontSize: 18 }}>Маршруты API{disabled ? " (отключены)" : ""}</h2>
+        <div style={{ marginTop: 12, display: "grid", gap: 10, fontSize: 14, color: disabled ? "#6b7280" : "#111" }}>
           <div><code>POST /api/regnum/lookup</code> — поиск авто по госномеру + опциональное обновление карточки в Bitrix</div>
           <div><code>POST /api/bitrix/webhook</code> — входящий хук из Bitrix (ONCRMDEALUPDATE, ONCRMLEADUPDATE, …)</div>
           <div><code>POST /api/bitrix/search</code> — поиск лидов/контактов (имя, марка авто)</div>

@@ -1,12 +1,13 @@
 import { NextRequest } from "next/server";
 import { regnumLookupLicensePlate } from "@/lib/regnum";
 import { BxEntityType, buildAutoFields, updateDealAutoFields, updateLeadAutoFields, updateContactAutoFields } from "@/lib/bitrix";
-import { errorResponse, okResponse } from "@/lib/response";
+import { disabledResponse, errorResponse, isIntegrationEnabled, okResponse } from "@/lib/response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   const plate = req.nextUrl.searchParams.get("plate") || req.nextUrl.searchParams.get("licensePlate");
   if (!plate) return errorResponse("plate required", 400);
   try {
@@ -18,6 +19,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!isIntegrationEnabled()) return disabledResponse();
   try {
     const body = (await req.json().catch(() => ({}))) as {
       plate?: string;
